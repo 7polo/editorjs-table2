@@ -2,13 +2,15 @@ import Toolbox from './toolbox';
 import * as $ from './utils/dom';
 import throttled from './utils/throttled';
 
+// import DelRowIcon from './img/del-row.svg'
+// import DelColIcon from './img/del-col.svg'
+import InsertColBeforeIcon from './img/insert-col-before.svg'
+import InsertColAfterIcon from './img/indert-col-after.svg'
+import InsertRowBeforeIcon from './img/insert-row-before.svg'
+import InsertRowAfterIcon from './img/insert-row-after.svg'
 import {
-  IconDirectionLeftDown,
-  IconDirectionRightDown,
-  IconDirectionUpRight,
-  IconDirectionDownRight,
-  IconCross,
-  IconPlus
+  IconPlus,
+  IconCross as DelRowIcon
 } from '@codexteam/icons';
 
 const CSS = {
@@ -49,11 +51,13 @@ export default class Table {
     this.wrapper = null;
     this.table = null;
 
-    /**
-     * Toolbox for managing of columns
-     */
-    this.toolboxColumn = this.createColumnToolbox();
-    this.toolboxRow = this.createRowToolbox();
+    // /**
+    //  * Toolbox for managing of columns
+    //  */
+    // this.toolboxColumn = this.createColumnToolbox();
+    // this.toolboxRow = this.createRowToolbox();
+
+    this.cellToolbox = this.createCellToolbox()
 
     /**
      * Create table and wrapper elements
@@ -155,37 +159,65 @@ export default class Table {
 
     // Determine the position of the cell in focus
     this.table.addEventListener('focusin', event => this.focusInTableListener(event));
+
+    this.table.addEventListener('contextmenu', event => {
+      event.preventDefault()
+      setTimeout(()=> this.showCellToolbox(), 0)
+    });
   }
 
-  /**
-   * Configures and creates the toolbox for manipulating with columns
-   *
-   * @returns {Toolbox}
-   */
-  createColumnToolbox() {
+  createCellToolbox() {
     return new Toolbox({
       api: this.api,
-      cssModifier: 'column',
+      cssModifier: 'row',
       items: [
         {
-          label: this.api.i18n.t('Add column to left'),
-          icon: IconDirectionLeftDown,
+          label: this.api.i18n.t('Add row above'),
+          icon: InsertRowBeforeIcon,
           onClick: () => {
-            this.addColumn(this.selectedColumn, true);
+            this.addRow(this.selectedRow, false);
+            this.hideToolboxes();
+          }
+        },
+        {
+          label: this.api.i18n.t('Add row below'),
+          icon: InsertRowAfterIcon,
+          onClick: () => {
+            this.addRow(this.selectedRow + 1, false);
+            this.hideToolboxes();
+          }
+        },
+        {
+          label: this.api.i18n.t('Delete row'),
+          icon: DelRowIcon,
+          hideIf: () => {
+            return this.numberOfRows === 1;
+          },
+          confirmationRequired: true,
+          onClick: () => {
+            this.deleteRow(this.selectedRow);
+            this.hideToolboxes();
+          }
+        },
+        {
+          label: this.api.i18n.t('Add column to left'),
+          icon: InsertColBeforeIcon,
+          onClick: () => {
+            this.addColumn(this.selectedColumn, false);
             this.hideToolboxes();
           }
         },
         {
           label: this.api.i18n.t('Add column to right'),
-          icon: IconDirectionRightDown,
+          icon: InsertColAfterIcon,
           onClick: () => {
-            this.addColumn(this.selectedColumn + 1, true);
+            this.addColumn(this.selectedColumn + 1, false);
             this.hideToolboxes();
           }
         },
         {
           label: this.api.i18n.t('Delete column'),
-          icon: IconCross,
+          icon: DelRowIcon,
           hideIf: () => {
             return this.numberOfColumns === 1;
           },
@@ -197,60 +229,12 @@ export default class Table {
         }
       ],
       onOpen: () => {
-        this.selectColumn(this.hoveredColumn);
-        this.hideRowToolbox();
-      },
-      onClose: () => {
-        this.unselectColumn();
-      }
-    });
-  }
-
-  /**
-   * Configures and creates the toolbox for manipulating with rows
-   *
-   * @returns {Toolbox}
-   */
-  createRowToolbox() {
-    return new Toolbox({
-      api: this.api,
-      cssModifier: 'row',
-      items: [
-        {
-          label: this.api.i18n.t('Add row above'),
-          icon: IconDirectionUpRight,
-          onClick: () => {
-            this.addRow(this.selectedRow, true);
-            this.hideToolboxes();
-          }
-        },
-        {
-          label: this.api.i18n.t('Add row below'),
-          icon: IconDirectionDownRight,
-          onClick: () => {
-            this.addRow(this.selectedRow + 1, true);
-            this.hideToolboxes();
-          }
-        },
-        {
-          label: this.api.i18n.t('Delete row'),
-          icon: IconCross,
-          hideIf: () => {
-            return this.numberOfRows === 1;
-          },
-          confirmationRequired: true,
-          onClick: () => {
-            this.deleteRow(this.selectedRow);
-            this.hideToolboxes();
-          }
-        }
-      ],
-      onOpen: () => {
         this.selectRow(this.hoveredRow);
-        this.hideColumnToolbox();
+        this.selectColumn(this.hoveredColumn);
       },
       onClose: () => {
-        this.unselectRow();
+        this.unselectRow()
+        this.unselectColumn()
       }
     });
   }
@@ -267,7 +251,6 @@ export default class Table {
       this.addRow();
       this.focusedCell.row += 1;
       this.focusCell(this.focusedCell);
-      this.updateToolboxesPosition(0, 0);
     }
   }
 
@@ -452,8 +435,7 @@ export default class Table {
       this.wrapper.classList.add(CSS.wrapperReadOnly);
     }
 
-    this.wrapper.appendChild(this.toolboxRow.element);
-    this.wrapper.appendChild(this.toolboxColumn.element);
+    this.wrapper.appendChild(this.cellToolbox.element);
     this.wrapper.appendChild(this.table);
 
     if (!this.readOnly) {
@@ -605,7 +587,7 @@ export default class Table {
     this.hoveredColumn = column;
     this.hoveredRow = row;
 
-    this.updateToolboxesPosition();
+    // this.updateToolboxesPosition();
   }
 
   /**
@@ -661,29 +643,7 @@ export default class Table {
    * @returns {void}
    */
   hideToolboxes() {
-    this.hideRowToolbox();
-    this.hideColumnToolbox();
-    this.updateToolboxesPosition();
-  }
-
-  /**
-   * Unselect row, close toolbox
-   *
-   * @returns {void}
-   */
-  hideRowToolbox() {
-    this.unselectRow();
-    this.toolboxRow.hide();
-  }
-  /**
-   * Unselect column, close toolbox
-   *
-   * @returns {void}
-   */
-  hideColumnToolbox() {
-    this.unselectColumn();
-
-    this.toolboxColumn.hide();
+    this.cellToolbox.hide();
   }
 
   /**
@@ -712,30 +672,45 @@ export default class Table {
    * @param {number} row - hovered row
    * @param {number} column - hovered column
    */
-  updateToolboxesPosition(row = this.hoveredRow, column = this.hoveredColumn) {
-    if (!this.isColumnMenuShowing) {
-      if (column > 0 && column <= this.numberOfColumns) { // not sure this statement is needed. Maybe it should be fixed in getHoveredCell()
-        this.toolboxColumn.show(() => {
-          return {
-            left: `calc((100% - var(--cell-size)) / (${this.numberOfColumns} * 2) * (1 + (${column} - 1) * 2))`
-          };
-        });
-      }
+  showCellToolbox(row = this.hoveredRow, column = this.hoveredColumn) {
+    if (column > 0 && column <= this.numberOfColumns && row > 0 && row <= this.numberOfRows) {
+      this.cellToolbox.show(()=> {
+        const hoveredRowElement = this.getRow(row);
+        const {fromTopBorder} = $.getRelativeCoordsOfTwoElems(this.table, hoveredRowElement);
+        const {height} = hoveredRowElement.getBoundingClientRect();
+        const pos = {left: 0, top: 0}
+        pos.top = `${Math.ceil(fromTopBorder + height / 2)}px`
+        pos.left = `calc((100% - var(--cell-size)) / (${this.numberOfColumns} * 2) * (1 + (${column} - 1) * 2))`
+        return pos;
+      })
+      this.unselectRow()
+      this.unselectColumn()
+      this.cellToolbox.open()
     }
 
-    if (!this.isRowMenuShowing) {
-      if (row > 0 && row <= this.numberOfRows) { // not sure this statement is needed. Maybe it should be fixed in getHoveredCell()
-        this.toolboxRow.show(() => {
-          const hoveredRowElement = this.getRow(row);
-          const { fromTopBorder } = $.getRelativeCoordsOfTwoElems(this.table, hoveredRowElement);
-          const { height } = hoveredRowElement.getBoundingClientRect();
-
-          return {
-            top: `${Math.ceil(fromTopBorder + height / 2)}px`
-          };
-        });
-      }
-    }
+    // if (!this.isColumnMenuShowing) {
+    //   if (column > 0 && column <= this.numberOfColumns) { // not sure this statement is needed. Maybe it should be fixed in getHoveredCell()
+    //     this.toolboxColumn.show(() => {
+    //       return {
+    //         left: `calc((100% - var(--cell-size)) / (${this.numberOfColumns} * 2) * (1 + (${column} - 1) * 2))`
+    //       };
+    //     });
+    //   }
+    // }
+    //
+    // if (!this.isRowMenuShowing) {
+    //   if (row > 0 && row <= this.numberOfRows) { // not sure this statement is needed. Maybe it should be fixed in getHoveredCell()
+    //     this.toolboxRow.show(() => {
+    //       const hoveredRowElement = this.getRow(row);
+    //       const { fromTopBorder } = $.getRelativeCoordsOfTwoElems(this.table, hoveredRowElement);
+    //       const { height } = hoveredRowElement.getBoundingClientRect();
+    //
+    //       return {
+    //         top: `${Math.ceil(fromTopBorder + height / 2)}px`
+    //       };
+    //     });
+    //   }
+    // }
   }
 
   /**

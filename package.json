@@ -1,18 +1,13 @@
 {
-  "name": "@editorjs/table",
+  "name": "@7polo/editorjs-table2",
   "description": "Table for Editor.js",
-  "version": "2.2.2",
+  "version": "0.0.2",
   "license": "MIT",
   "main": "./dist/table.js",
   "scripts": {
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development --watch",
     "lint": "eslint -c ./.eslintrc --ext .js --fix ."
-  },
-  "repository": "https://github.com/editor-js/table",
-  "author": {
-    "name": "CodeX Team",
-    "email": "team@ifmo.su"
   },
   "keywords": [
     "codex",
@@ -26,7 +21,6 @@
     "css-loader": "^1.0.0",
     "cssnano": "^4.1.7",
     "eslint": "^5.8.0",
-    "eslint-config-codex": "github:codex-team/eslint-config",
     "postcss-import": "^12.0.1",
     "postcss-loader": "^3.0.0",
     "postcss-nested": "^4.1.0",

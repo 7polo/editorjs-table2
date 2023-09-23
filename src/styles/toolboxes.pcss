@@ -37,7 +37,6 @@
   }
 
   &__toggler {
-    display: flex;
     align-items: center;
     justify-content: center;
     width: var(--toggler-click-zone-size);
@@ -46,17 +45,10 @@
     opacity: 0;
     transition: opacity 150ms ease;
     will-change: opacity;
-
-    &:hover {
-      color: var(--toggler-dots-color-hovered);
-    }
+    display: none;
 
     svg {
       fill: currentColor;
     }
   }
-}
-
-.tc-wrap:hover .tc-toolbox__toggler {
-  opacity: 1;
 }

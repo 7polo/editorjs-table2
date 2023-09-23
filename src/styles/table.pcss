@@ -10,14 +10,13 @@
     var(--toolbox-icon-size) + 2 * var(--toolbox-padding)
   );
 
-  border-left: 0px;
+  border-left: 0;
   position: relative;
   height: 100%;
   width: 100%;
-  margin-top: var(--toolbox-icon-size);
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: calc(100% - var(--cell-size)) var(--cell-size);
+  grid-template-columns: calc(100%) var(--cell-size);
 
   &--readonly {
     grid-template-columns: 100% var(--cell-size);
@@ -46,6 +45,7 @@
   display: grid;
   font-size: 14px;
   border-top: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
   line-height: 1.4;
 
   &::after {
@@ -99,7 +99,7 @@
 .tc-add-column {
   padding: 4px 0;
   justify-content: center;
-  border-top: 1px solid var(--color-border);
+  border: none;
 
   @media print {
     display: none;
@@ -111,12 +111,11 @@
   align-items: center;
   padding-left: 4px;
   position: relative;
+  border: none;
 
   &::before {
     content: "";
     position: absolute;
-    right: calc(-1 * var(--cell-size));
-    width: var(--cell-size);
     height: 100%;
   }
 
@@ -139,8 +138,6 @@
   }
 
   &-row {
-    margin-top: 1px;
-
     &:hover::before {
       transition: 0.1s;
       background-color: var(--color-background);
@@ -154,16 +151,7 @@
   position: relative;
   border-bottom: 1px solid var(--color-border);
 
-  &::after {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    width: var(--cell-size);
-    height: 100%;
-    bottom: -1px;
-    right: calc(-1 * var(--cell-size));
-    border-bottom: 1px solid var(--color-border);
-  }
+
 
   &--selected {
     background: var(--color-background);

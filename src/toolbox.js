@@ -144,5 +144,11 @@ export default class Toolbox {
   hide() {
     this.popover.close();
     this.wrapper.classList.remove(Toolbox.CSS.toolboxShowed);
+    this.onClose();
+  }
+
+  open() {
+    this.popover.open();
+    this.onOpen();
   }
 }
